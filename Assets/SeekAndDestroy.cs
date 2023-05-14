@@ -43,15 +43,20 @@ public class SeekAndDestroy : MonoBehaviour
     {
         GameObject closestEnemy = null;
         float closestDistance = Mathf.Infinity;
+
         foreach (GameObject enemyNPC in enemyNPCs)
         {
-            float distance = Vector3.Distance(transform.position, enemyNPC.transform.position);
-            if (distance < closestDistance)
+            if (enemyNPC.activeSelf) // Check if the enemy is active
             {
-                closestDistance = distance;
-                closestEnemy = enemyNPC;
+                float distance = Vector3.Distance(transform.position, enemyNPC.transform.position);
+                if (distance < closestDistance)
+                {
+                    closestDistance = distance;
+                    closestEnemy = enemyNPC;
+                }
             }
         }
+
         return closestEnemy;
     }
 
