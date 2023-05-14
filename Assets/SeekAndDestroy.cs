@@ -8,6 +8,10 @@ public class SeekAndDestroy : MonoBehaviour
 
     public GameObject projectilePrefab;
     public Transform muzzle; // Reference to the child object named "Muzzle"
+    public int projectilePoolSize = 10; // Number of projectiles to initialize in the pool
+    private List<GameObject> projectilePool = new List<GameObject>();
+    private int currentProjectileIndex = 0;
+
     public float fireInterval = 1f;
     private float fireTimer;
 
@@ -15,6 +19,9 @@ public class SeekAndDestroy : MonoBehaviour
     {
         // Populate the enemyNPCs list when the script starts
         PopulateEnemyNPCs();
+
+        // Initialize the projectile pool
+        InitializeProjectilePool();
     }
 
     private void PopulateEnemyNPCs()
@@ -25,6 +32,16 @@ public class SeekAndDestroy : MonoBehaviour
             {
                 enemyNPCs.Add(child.gameObject);
             }
+        }
+    }
+
+    private void InitializeProjectilePool()
+    {
+        for (int i = 0; i < projectilePoolSize; i++)
+        {
+            GameObject projectile = Instantiate(projectilePrefab);
+            projectile.SetActive(false);
+            projectilePool.Add(projectile);
         }
     }
 
@@ -62,9 +79,9 @@ public class SeekAndDestroy : MonoBehaviour
 
     private void RotateTowardsEnemy(GameObject enemy)
     {
-       Vector3 direction = enemy.transform.position - transform.position;
+        Vector3 direction = enemy.transform.position - transform.position;
         direction.y = 0f; // Set the y-component to zero to restrict rotation to the y-axis only
-       Quaternion rotation = Quaternion.LookRotation(direction);
+        Quaternion rotation = Quaternion.LookRotation(direction);
         transform.rotation = rotation;
     }
 
@@ -73,8 +90,15 @@ public class SeekAndDestroy : MonoBehaviour
         fireTimer += Time.deltaTime;
         if (fireTimer >= fireInterval)
         {
-            // Instantiate a projectile and set its position and rotation
-            GameObject projectile = Instantiate(projectilePrefab, muzzle.position, muzzle.rotation); // Use the muzzle's position and rotation
+            // Get the next available projectile from the pool
+            GameObject projectile = GetNextAvailableProjectile();
+
+            // Set the position and rotation of the projectile
+            projectile.transform.position = muzzle.position;
+            projectile.transform.rotation = muzzle.rotation;
+
+            // Activate the projectile
+            projectile.SetActive(true);
 
             // Get the projectile's Rigidbody component
             Rigidbody projectileRigidbody = projectile.GetComponent<Rigidbody>();
@@ -91,5 +115,13 @@ public class SeekAndDestroy : MonoBehaviour
             // Reset the timer
             fireTimer = 0f;
         }
+    }
+
+    private GameObject GetNextAvailableProjectile()
+    {
+        // Get the next available projectile from the pool
+        GameObject projectile = projectilePool[currentProjectileIndex];
+        currentProjectileIndex = (currentProjectileIndex + 1) % projectilePool.Count;
+        return projectile;
     }
 }
