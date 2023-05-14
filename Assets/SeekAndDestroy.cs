@@ -6,6 +6,11 @@ public class SeekAndDestroy : MonoBehaviour
     public Transform enemySpawner;
     private List<GameObject> enemyNPCs = new List<GameObject>();
 
+    public GameObject projectilePrefab;
+    public Transform muzzle; // Reference to the child object named "Muzzle"
+    public float fireInterval = 1f;
+    private float fireTimer;
+
     private void Start()
     {
         // Populate the enemyNPCs list when the script starts
@@ -30,6 +35,7 @@ public class SeekAndDestroy : MonoBehaviour
         if (closestEnemy != null)
         {
             RotateTowardsEnemy(closestEnemy);
+            FireAtEnemy();
         }
     }
 
@@ -51,8 +57,34 @@ public class SeekAndDestroy : MonoBehaviour
 
     private void RotateTowardsEnemy(GameObject enemy)
     {
-        Vector3 direction = enemy.transform.position - transform.position;
-        Quaternion rotation = Quaternion.LookRotation(direction);
+       Vector3 direction = enemy.transform.position - transform.position;
+        direction.y = 0f; // Set the y-component to zero to restrict rotation to the y-axis only
+       Quaternion rotation = Quaternion.LookRotation(direction);
         transform.rotation = rotation;
+    }
+
+    private void FireAtEnemy()
+    {
+        fireTimer += Time.deltaTime;
+        if (fireTimer >= fireInterval)
+        {
+            // Instantiate a projectile and set its position and rotation
+            GameObject projectile = Instantiate(projectilePrefab, muzzle.position, muzzle.rotation); // Use the muzzle's position and rotation
+
+            // Get the projectile's Rigidbody component
+            Rigidbody projectileRigidbody = projectile.GetComponent<Rigidbody>();
+
+            // Set the speed of the projectile
+            float projectileSpeed = 10f; // Adjust the speed as desired
+
+            // Calculate the movement vector based on the projectile's local forward direction
+            Vector3 velocity = projectile.transform.forward * projectileSpeed;
+
+            // Set the velocity of the projectile's Rigidbody in local space
+            projectileRigidbody.velocity = velocity;
+
+            // Reset the timer
+            fireTimer = 0f;
+        }
     }
 }
